@@ -1,0 +1,8 @@
+
+{
+  "name": "Catur Ceria (Cheerful Chess)",
+  "description": "A child-friendly chess game designed for educational play between two people, even from different locations. Features unlimited undo, legal move highlighting, and a playful UI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
