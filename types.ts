@@ -1,6 +1,7 @@
 
 export type Color = 'w' | 'b';
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
+export type GameMode = 'local' | 'online';
 
 export interface Square {
   type: PieceType;
@@ -24,6 +25,6 @@ export interface GameState {
 }
 
 export interface PeerMessage {
-  type: 'MOVE' | 'UNDO' | 'RESET' | 'CHAT' | 'SYNC' | 'READY_CHANGE';
+  type: 'MOVE' | 'UNDO' | 'RESET' | 'SYNC' | 'READY_CHANGE';
   payload: any;
 }

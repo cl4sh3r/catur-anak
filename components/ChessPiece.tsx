@@ -8,10 +8,10 @@ interface ChessPieceProps {
   size?: number;
 }
 
-const ChessPiece: React.FC<ChessPieceProps> = ({ type, color, size = 40 }) => {
+const ChessPiece: React.FC<ChessPieceProps> = ({ type, color, size = 42 }) => {
   const isWhite = color === 'w';
   
-  // Mapping chess pieces to cute SVG characters or standard symbols with soft colors
+  // Mapping chess pieces to standard symbols
   const pieceMap: Record<PieceType, string> = {
     p: isWhite ? '♙' : '♟',
     r: isWhite ? '♖' : '♜',
@@ -21,14 +21,20 @@ const ChessPiece: React.FC<ChessPieceProps> = ({ type, color, size = 40 }) => {
     k: isWhite ? '♔' : '♚',
   };
 
-  const colorClass = isWhite ? 'text-blue-500' : 'text-orange-600';
+  const colorClass = isWhite ? 'text-blue-500 drop-shadow-sm' : 'text-orange-600 drop-shadow-sm';
 
   return (
     <div 
-      className={`select-none flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-grab active:cursor-grabbing`}
-      style={{ fontSize: `${size}px` }}
+      className={`select-none flex items-center justify-center transition-transform hover:scale-110 active:scale-90 cursor-grab active:cursor-grabbing w-full h-full`}
+      style={{ 
+        fontSize: `${size}px`, 
+        lineHeight: '1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
     >
-      <span className={colorClass}>{pieceMap[type]}</span>
+      <span className={`${colorClass} block`}>{pieceMap[type]}</span>
     </div>
   );
 };

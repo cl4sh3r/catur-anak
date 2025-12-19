@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ChessPiece from './ChessPiece';
-import { Color, PieceType } from '../types';
+import { Color, PieceType, GameMode } from '../types';
 
 interface BoardProps {
   board: any[][];
@@ -10,7 +10,9 @@ interface BoardProps {
   legalMoves: any[];
   lastMove?: { from: string, to: string };
   isCheck: boolean;
-  playerColor?: Color;
+  myColor: Color;
+  gameMode: GameMode;
+  flipped?: boolean;
 }
 
 const ChessBoard: React.FC<BoardProps> = ({ 
@@ -20,7 +22,9 @@ const ChessBoard: React.FC<BoardProps> = ({
   legalMoves, 
   lastMove, 
   isCheck,
-  playerColor = 'w'
+  myColor,
+  gameMode,
+  flipped = false
 }) => {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
 
@@ -31,6 +35,8 @@ const ChessBoard: React.FC<BoardProps> = ({
   };
 
   const handleSquareClick = (row: number, col: number) => {
+    if (gameMode === 'online' && turn !== myColor) return;
+
     const square = getSquareName(row, col);
     
     if (selectedSquare === square) {
@@ -38,14 +44,12 @@ const ChessBoard: React.FC<BoardProps> = ({
       return;
     }
 
-    // If a piece is already selected, try to move it
     if (selectedSquare) {
       const isLegal = legalMoves.some(m => m.from === selectedSquare && m.to === square);
       if (isLegal) {
         onMove(selectedSquare, square);
         setSelectedSquare(null);
       } else {
-        // If clicking another of own pieces, select that instead
         const piece = board[row][col];
         if (piece && piece.color === turn) {
           setSelectedSquare(square);
@@ -54,7 +58,6 @@ const ChessBoard: React.FC<BoardProps> = ({
         }
       }
     } else {
-      // Select piece if it's player's turn and square has a piece
       const piece = board[row][col];
       if (piece && piece.color === turn) {
         setSelectedSquare(square);
@@ -68,9 +71,14 @@ const ChessBoard: React.FC<BoardProps> = ({
 
   const renderBoard = () => {
     const rows = [];
-    for (let r = 0; r < 8; r++) {
+    const displayAsBlack = gameMode === 'online' ? myColor === 'b' : flipped;
+    const range = displayAsBlack ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+    
+    for (const r of range) {
       const cols = [];
-      for (let c = 0; c < 8; c++) {
+      const colRange = displayAsBlack ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+      
+      for (const c of colRange) {
         const squareName = getSquareName(r, c);
         const piece = board[r][c];
         const isDark = (r + c) % 2 === 1;
@@ -83,47 +91,54 @@ const ChessBoard: React.FC<BoardProps> = ({
             key={squareName}
             onClick={() => handleSquareClick(r, c)}
             className={`
-              relative w-full h-full flex items-center justify-center text-2xl
+              relative flex-shrink-0 flex-grow-0
               ${isDark ? 'bg-emerald-200' : 'bg-white'}
-              ${isSelected ? 'ring-4 ring-yellow-400 z-10' : ''}
+              ${isSelected ? 'bg-yellow-200 ring-4 ring-inset ring-yellow-400 z-10' : ''}
               ${isLastMove ? 'bg-yellow-100' : ''}
-              cursor-pointer transition-all duration-200
-              hover:opacity-90
+              cursor-pointer transition-colors duration-75 overflow-hidden
             `}
-            style={{ aspectRatio: '1/1' }}
+            style={{ 
+              width: '12.5%', 
+              height: '100%',
+              boxSizing: 'border-box'
+            }}
           >
-            {/* Square Label (Educational) */}
-            <span className="absolute bottom-0.5 right-1 text-[10px] text-gray-400 select-none opacity-50">
+            {/* Koordinat label (lebih terlihat sedikit karena papan lebih besar) */}
+            <span className="absolute top-1 left-1 text-[10px] text-gray-400 font-bold select-none z-0">
               {squareName}
             </span>
 
-            {/* Piece */}
-            {piece && <ChessPiece type={piece.type} color={piece.color} size={48} />}
+            {/* Kontainer Bidak dengan ukuran yang diperbesar (sekitar 80-84px) */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-1">
+               {piece && <ChessPiece type={piece.type} color={piece.color} size={82} />}
+            </div>
 
-            {/* Legal Move Indicator */}
+            {/* Penanda Langkah Legal yang lebih besar */}
             {isLegalDest && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className={`w-4 h-4 rounded-full ${piece ? 'bg-red-400/50 scale-150 border-2 border-red-500' : 'bg-emerald-500/30'}`} />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                <div className={`rounded-full ${piece ? 'w-full h-full border-[10px] border-emerald-500/25' : 'w-6 h-6 bg-emerald-500/40'}`} />
               </div>
             )}
 
-            {/* Check Indicator */}
+            {/* Efek Skak */}
             {isCheck && piece?.type === 'k' && piece?.color === turn && (
-              <div className="absolute inset-0 bg-red-500/30 animate-pulse rounded-full" />
+              <div className="absolute inset-0 bg-red-500/30 animate-pulse z-10" />
             )}
           </div>
         );
       }
-      rows.push(<div key={r} className="flex w-full">{cols}</div>);
+      rows.push(
+        <div key={r} className="flex w-full overflow-hidden" style={{ height: '12.5%' }}>
+          {cols}
+        </div>
+      );
     }
     return rows;
   };
 
   return (
-    <div className="w-full max-w-[500px] border-8 border-emerald-600 rounded-xl overflow-hidden shadow-2xl bg-emerald-600">
-      <div className="flex flex-col">
-        {renderBoard()}
-      </div>
+    <div className="w-full aspect-square max-w-[1024px] min-w-[320px] border-[16px] border-emerald-700 rounded-[40px] overflow-hidden shadow-2xl bg-emerald-700 flex flex-col items-stretch justify-stretch">
+       {renderBoard()}
     </div>
   );
 };
