@@ -24,7 +24,13 @@ export interface GameState {
   lastMove?: Move;
 }
 
+export interface ChatMessage {
+  sender: 'me' | 'friend';
+  text: string;
+  timestamp: number;
+}
+
 export interface PeerMessage {
-  type: 'MOVE' | 'UNDO' | 'RESET' | 'SYNC' | 'READY_CHANGE';
+  type: 'MOVE' | 'UNDO' | 'RESET' | 'SYNC' | 'READY_CHANGE' | 'CHAT';
   payload: any;
 }
